@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markets - Polymarket AI Trader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e4e4e7; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.05); padding: 20px; z-index: 100; }
+        .logo { padding: 10px 0 30px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .logo h2 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #a1a1aa; text-decoration: none; border-radius: 10px; margin-bottom: 8px; transition: all 0.3s; font-size: 14px; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: rgba(124,58,237,0.2); color: #fff; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 28px; font-weight: 600; }
+        
+        .markets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .market-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; transition: all 0.3s; }
+        .market-card:hover { transform: translateY(-4px); border-color: rgba(124,58,237,0.3); }
+        .market-question { font-size: 16px; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+        .market-prices { display: flex; gap: 16px; margin-bottom: 16px; }
+        .price-box { flex: 1; padding: 12px; border-radius: 10px; text-align: center; }
+        .price-box.yes { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); }
+        .price-box.no { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); }
+        .price-label { font-size: 12px; color: #71717a; margin-bottom: 4px; }
+        .price-value { font-size: 24px; font-weight: 700; }
+        .price-box.yes .price-value { color: #4ade80; }
+        .price-box.no .price-value { color: #f87171; }
+        
+        .market-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #71717a; margin-bottom: 16px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; width: 100%; }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; }
+        .btn-buy { display: flex; gap: 10px; }
+        .btn-buy .btn { flex: 1; }
+        
+        .ai-analysis { background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 10px; padding: 12px; margin-top: 12px; display: none; }
+        .ai-analysis.show { display: block; }
+        .ai-analysis-title { font-size: 12px; color: #7c3aed; margin-bottom: 8px; }
+        .ai-decision { font-weight: 600; }
+        .ai-decision.yes { color: #4ade80; }
+        .ai-decision.no { color: #f87171; }
+        .ai-decision.hold { color: #fbbf24; }
+        
+        .loading { text-align: center; padding: 40px; color: #71717a; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box input { flex: 1; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 14px; }
+        .search-box input:focus { outline: none; border-color: #7c3aed; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo"><h2><i class="fas fa-robot"></i> PolyAI Trader</h2></div>
+        <nav>
+            <a href="/dashboard" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="/markets" class="nav-item active"><i class="fas fa-chart-pie"></i> Markets</a>
+            <a href="/trades" class="nav-item"><i class="fas fa-history"></i> Trades</a>
+            <a href="/settings" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+        </nav>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1>Active Markets</h1>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search markets..." onkeyup="filterMarkets()">
+        </div>
+        
+        <div class="markets-grid" id="marketsGrid">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading markets...</div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+        
+        let markets = [];
+        
+        async function loadMarkets() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            try {
+                markets = await fetch('/api/markets', { headers }).then(r => r.json());
+                renderMarkets(markets);
+            } catch (err) {
+                document.getElementById('marketsGrid').innerHTML = '<div class="loading">Error loading markets</div>';
+            }
+        }
+        
+        function renderMarkets(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('marketsGrid').innerHTML = '<div class="loading">No markets found</div>';
+                return;
+            }
+            
+            document.getElementById('marketsGrid').innerHTML = data.map(m => {
+                const question = m.question || m.description || m.market_question || 'Unknown Market';
+                const marketId = m.condition_id || m.id || m.conditionId;
+                const yesPrice = m.yes_price || 0.5;
+                const noPrice = m.no_price || 0.5;
+                const volume = m.volume || 0;
+                const yesTokenId = m.yes_token_id || '';
+                const noTokenId = m.no_token_id || '';
+                
+                return `
+                <div class="market-card" data-question="${question.toLowerCase()}">
+                    <div class="market-question">${question}</div>
+                    <div class="market-prices">
+                        <div class="price-box yes">
+                            <div class="price-label">YES</div>
+                            <div class="price-value">$${yesPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="price-box no">
+                            <div class="price-label">NO</div>
+                            <div class="price-value">$${noPrice.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="market-meta">
+                        <span><i class="fas fa-chart-bar"></i> $${(volume/1000000).toFixed(1)}M volume</span>
+                    </div>
+                    <div class="btn-buy">
+                        <button class="btn btn-primary" onclick="buyMarket('${marketId}', '${question.replace(/'/g, "\\'")}', 'yes', ${yesPrice}, '${yesTokenId}')">Buy YES</button>
+                        <button class="btn btn-primary" style="background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);" onclick="buyMarket('${marketId}', '${question.replace(/'/g, "\\'")}', 'no', ${noPrice}, '${noTokenId}')">Buy NO</button>
+                    </div>
+                    <button class="btn" style="margin-top: 10px; background: rgba(124,58,237,0.2); color: #a78bfa;" onclick="analyzeMarket('${marketId}', '${question.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-brain"></i> AI Analysis
+                    </button>
+                    <div id="ai-${marketId}" class="ai-analysis">
+                        <div class="ai-analysis-title"><i class="fas fa-robot"></i> AI Recommendation</div>
+                        <div class="ai-decision" id="decision-${marketId}">Analyzing...</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+        
+        function filterMarkets() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = markets.filter(m => {
+                const q = m.question || m.description || '';
+                return q.toLowerCase().includes(query);
+            });
+            renderMarkets(filtered);
+        }
+        
+        async function buyMarket(marketId, question, side, price, tokenId) {
+            if (!confirm(`Buy ${side.toUpperCase()} for $10?`)) return;
+            
+            const headers = { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            try {
+                const res = await fetch('/api/trade/buy', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        market_id: marketId,
+                        market_question: question,
+                        side: side,
+                        amount: 10,
+                        token_id: tokenId
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert('Trade executed successfully!');
+                } else {
+                    alert('Trade failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (err) {
+                alert('Trade error: ' + err.message);
+            }
+        }
+        
+        async function analyzeMarket(marketId, question) {
+            const aiDiv = document.getElementById(`ai-${marketId}`);
+            const decisionDiv = document.getElementById(`decision-${marketId}`);
+            
+            aiDiv.classList.add('show');
+            decisionDiv.textContent = 'Analyzing...';
+            
+            const headers = { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            try {
+                const res = await fetch('/api/ai/analyze', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ market_id: marketId, market_question: question })
+                });
+                
+                const data = await res.json();
+                const decision = data.decision || 'HOLD';
+                decisionDiv.textContent = decision;
+                decisionDiv.className = 'ai-decision ' + decision.toLowerCase();
+            } catch (err) {
+                decisionDiv.textContent = 'Error: ' + err.message;
+            }
+        }
+        
+        loadMarkets();
+        setInterval(loadMarkets, 60000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Polymarket AI Trader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e4e4e7; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); border-right: 1px solid rgba(255,255,255,0.05); padding: 20px; z-index: 100; }
+        .logo { padding: 10px 0 30px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .logo h2 { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #a1a1aa; text-decoration: none; border-radius: 10px; margin-bottom: 8px; transition: all 0.3s; font-size: 14px; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { background: rgba(124,58,237,0.2); color: #fff; }
+        .main-content { margin-left: 260px; padding: 30px; }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 28px; font-weight: 600; }
+        
+        .settings-section { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .provider-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .provider-card { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .provider-card:hover { border-color: rgba(124,58,237,0.5); }
+        .provider-card.selected { border-color: #7c3aed; background: rgba(124,58,237,0.1); }
+        .provider-icon { font-size: 32px; margin-bottom: 8px; }
+        .provider-name { font-weight: 600; font-size: 14px; }
+        .provider-status { font-size: 11px; color: #71717a; margin-top: 4px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: #a1a1aa; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #7c3aed; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-hint { font-size: 12px; color: #71717a; margin-top: 6px; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px -10px rgba(124,58,237,0.5); }
+        .btn-success { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); color: #000; }
+        
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .toggle-row:last-child { border-bottom: none; }
+        .toggle-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .toggle-info p { font-size: 12px; color: #71717a; }
+        .toggle { width: 50px; height: 26px; background: rgba(255,255,255,0.1); border-radius: 13px; cursor: pointer; position: relative; transition: all 0.3s; }
+        .toggle.active { background: #7c3aed; }
+        .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: #fff; border-radius: 50%; top: 2px; left: 2px; transition: all 0.3s; }
+        .toggle.active::after { left: 26px; }
+        
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-badge.connected { background: rgba(74,222,128,0.2); color: #4ade80; }
+        .status-badge.disconnected { background: rgba(248,113,113,0.2); color: #f87171; }
+        
+        .test-result { margin-top: 12px; padding: 12px; border-radius: 8px; display: none; }
+        .test-result.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: #4ade80; }
+        .test-result.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo"><h2><i class="fas fa-robot"></i> PolyAI Trader</h2></div>
+        <nav>
+            <a href="/dashboard" class="nav-item"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="/markets" class="nav-item"><i class="fas fa-chart-pie"></i> Markets</a>
+            <a href="/trades" class="nav-item"><i class="fas fa-history"></i> Trades</a>
+            <a href="/settings" class="nav-item active"><i class="fas fa-cog"></i> Settings</a>
+        </nav>
+    </div>
+    
+    <div class="main-content">
+        <div class="header"><h1>AI Settings</h1></div>
+        
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-brain"></i> AI Provider</div>
+            
+            <div class="provider-grid">
+                <div class="provider-card" data-provider="ollama" onclick="selectProvider('ollama')">
+                    <div class="provider-icon">🐙</div>
+                    <div class="provider-name">Ollama</div>
+                    <div class="provider-status" id="ollama-status">Local</div>
+                </div>
+                <div class="provider-card" data-provider="lmstudio" onclick="selectProvider('lmstudio')">
+                    <div class="provider-icon">💻</div>
+                    <div class="provider-name">LM Studio</div>
+                    <div class="provider-status" id="lmstudio-status">Local</div>
+                </div>
+                <div class="provider-card" data-provider="openrouter" onclick="selectProvider('openrouter')">
+                    <div class="provider-icon">🌐</div>
+                    <div class="provider-name">OpenRouter</div>
+                    <div class="provider-status" id="openrouter-status">API Key</div>
+                </div>
+                <div class="provider-card" data-provider="gemini" onclick="selectProvider('gemini')">
+                    <div class="provider-icon">🔮</div>
+                    <div class="provider-name">Gemini</div>
+                    <div class="provider-status" id="gemini-status">API Key</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Model</label>
+                <input type="text" id="modelInput" placeholder="e.g., llama2, codellama, gpt-3.5-turbo">
+            </div>
+            
+            <div id="apiKeySection" style="display: none;">
+                <div class="form-group">
+                    <label id="apiKeyLabel">API Key</label>
+                    <input type="password" id="apiKeyInput" placeholder="Enter API key">
+                </div>
+            </div>
+            
+            <div class="form-group" id="urlSection" style="display: none;">
+                <label>Local URL</label>
+                <input type="text" id="urlInput" placeholder="http://localhost:11434">
+            </div>
+            
+            <button class="btn btn-primary" onclick="testAI()">
+                <i class="fas fa-plug"></i> Test Connection
+            </button>
+            <div id="testResult" class="test-result"></div>
+        </div>
+        
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-prompt"></i> AI Prompt</div>
+            <div class="form-group">
+                <label>Trading Prompt</label>
+                <textarea id="promptTemplate" placeholder="You are a trading assistant..."></textarea>
+                <div class="form-hint">Use this to customize how the AI analyzes markets. The market question and prices will be appended.</div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-robot"></i> Auto Trading</div>
+            
+            <div class="toggle-row">
+                <div class="toggle-info">
+                    <h4>Enable AI Trading</h4>
+                    <p>Allow AI to automatically execute trades based on analysis</p>
+                </div>
+                <div class="toggle" id="aiEnabledToggle" onclick="toggleAI()"></div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <div class="section-title"><i class="fas fa-exchange-alt"></i> Polymarket API</div>
+            <div class="form-group">
+                <label>API URL</label>
+                <input type="text" id="polymarketApiUrl" placeholder="https://clob.polymarket.com">
+                <div class="form-hint">Polymarket API endpoint</div>
+            </div>
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" id="polymarketApiKey" placeholder="Enter your Polymarket API key">
+                <div class="form-hint">Get from your Polymarket account settings</div>
+            </div>
+            <div class="form-group">
+                <label>API Secret</label>
+                <input type="password" id="polymarketApiSecret" placeholder="Enter your API secret">
+            </div>
+            <div class="form-group">
+                <label>Wallet Address</label>
+                <input type="text" id="polymarketWallet" placeholder="Enter your wallet address">
+            </div>
+        </div>
+        
+        <button class="btn btn-success" onclick="saveSettings()">
+            <i class="fas fa-save"></i> Save Settings
+        </button>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+        
+        let currentProvider = 'ollama';
+        let aiConfig = {};
+        
+        async function loadSettings() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            try {
+                const [aiRes, polyRes] = await Promise.all([
+                    fetch('/api/ai/config', { headers }),
+                    fetch('/api/polymarket/config', { headers })
+                ]);
+                
+                aiConfig = await aiRes.json();
+                const polyConfig = await polyRes.json();
+                
+                selectProvider(aiConfig.provider || 'ollama');
+                document.getElementById('modelInput').value = aiConfig.model || 'llama2';
+                document.getElementById('promptTemplate').value = aiConfig.prompt_template || '';
+                document.getElementById('urlInput').value = aiConfig.ollama_url || 'http://localhost:11434';
+                document.getElementById('polymarketApiUrl').value = polyConfig.api_url || 'https://clob.polymarket.com';
+                document.getElementById('polymarketApiKey').value = polyConfig.api_key || '';
+                document.getElementById('polymarketApiSecret').value = polyConfig.api_secret || '';
+                document.getElementById('polymarketWallet').value = polyConfig.wallet_address || '';
+                
+                if (aiConfig.enabled) {
+                    document.getElementById('aiEnabledToggle').classList.add('active');
+                }
+                
+                updateProviderStatus();
+            } catch (err) {
+                console.error('Error loading settings:', err);
+            }
+        }
+        
+        function selectProvider(provider) {
+            currentProvider = provider;
+            document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`[data-provider="${provider}"]`).classList.add('selected');
+            
+            const apiKeySection = document.getElementById('apiKeySection');
+            const urlSection = document.getElementById('urlSection');
+            
+            if (provider === 'ollama') {
+                apiKeySection.style.display = 'none';
+                urlSection.style.display = 'block';
+                document.getElementById('urlInput').value = aiConfig.ollama_url || 'http://localhost:11434';
+            } else if (provider === 'lmstudio') {
+                apiKeySection.style.display = 'none';
+                urlSection.style.display = 'block';
+                document.getElementById('urlInput').value = aiConfig.lmstudio_url || 'http://localhost:1234/v1';
+            } else if (provider === 'openrouter') {
+                apiKeySection.style.display = 'block';
+                urlSection.style.display = 'none';
+                document.getElementById('apiKeyLabel').textContent = 'OpenRouter API Key';
+                document.getElementById('apiKeyInput').value = aiConfig.openrouter_api_key || '';
+            } else if (provider === 'gemini') {
+                apiKeySection.style.display = 'block';
+                urlSection.style.display = 'none';
+                document.getElementById('apiKeyLabel').textContent = 'Gemini API Key';
+                document.getElementById('apiKeyInput').value = aiConfig.gemini_api_key || '';
+            }
+        }
+        
+        function updateProviderStatus() {
+            document.getElementById('ollama-status').innerHTML = aiConfig.provider === 'ollama' ? '<span class="status-badge connected">Active</span>' : 'Local';
+            document.getElementById('lmstudio-status').innerHTML = aiConfig.provider === 'lmstudio' ? '<span class="status-badge connected">Active</span>' : 'Local';
+            document.getElementById('openrouter-status').innerHTML = aiConfig.has_openrouter_key ? '<span class="status-badge connected">Configured</span>' : 'API Key';
+            document.getElementById('gemini-status').innerHTML = aiConfig.has_gemini_key ? '<span class="status-badge connected">Configured</span>' : 'API Key';
+        }
+        
+        function toggleAI() {
+            document.getElementById('aiEnabledToggle').classList.toggle('active');
+        }
+        
+        async function saveSettings() {
+            const headers = { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            const enabled = document.getElementById('aiEnabledToggle').classList.contains('active');
+            const model = document.getElementById('modelInput').value;
+            const prompt = document.getElementById('promptTemplate').value;
+            const url = document.getElementById('urlInput').value;
+            const apiKey = document.getElementById('apiKeyInput').value;
+            
+            const body = {
+                provider: currentProvider,
+                model: model,
+                prompt_template: prompt,
+                enabled: enabled
+            };
+            
+            if (currentProvider === 'ollama') {
+                body.ollama_url = url;
+            } else if (currentProvider === 'lmstudio') {
+                body.lmstudio_url = url;
+            } else if (currentProvider === 'openrouter' && apiKey) {
+                body.openrouter_api_key = apiKey;
+            } else if (currentProvider === 'gemini' && apiKey) {
+                body.gemini_api_key = apiKey;
+            }
+            
+            try {
+                await fetch('/api/ai/config', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(body)
+                });
+                
+                const polyApiUrl = document.getElementById('polymarketApiUrl').value;
+                const polyApiKey = document.getElementById('polymarketApiKey').value;
+                const polyApiSecret = document.getElementById('polymarketApiSecret').value;
+                const polyWallet = document.getElementById('polymarketWallet').value;
+                
+                await fetch('/api/polymarket/config', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ 
+                        api_url: polyApiUrl, 
+                        api_key: polyApiKey,
+                        api_secret: polyApiSecret,
+                        wallet_address: polyWallet
+                    })
+                });
+                
+                alert('Settings saved!');
+            } catch (err) {
+                alert('Error saving settings');
+            }
+        }
+        
+        async function testAI() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing connection...';
+            resultDiv.className = 'test-result';
+            
+            await saveSettings();
+            
+            const headers = { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+            
+            try {
+                const res = await fetch('/api/ai/analyze', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        market_id: 'test',
+                        market_question: 'Will BTC reach $100k by 2025? YES price: $0.65 NO price: $0.35'
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.decision && !data.decision.startsWith('ERROR')) {
+                    resultDiv.textContent = 'Success! AI Response: ' + data.decision;
+                    resultDiv.className = 'test-result success';
+                } else {
+                    resultDiv.textContent = 'Error: ' + (data.decision || 'Connection failed');
+                    resultDiv.className = 'test-result error';
+                }
+            } catch (err) {
+                resultDiv.textContent = 'Error: ' + err.message;
+                resultDiv.className = 'test-result error';
+            }
+        }
+        
+        loadSettings();
+    </script>
+</body>
+</html>

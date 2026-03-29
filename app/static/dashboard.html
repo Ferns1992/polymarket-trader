@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Polymarket AI Trader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e7;
+        }
+        
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            z-index: 100;
+        }
+        
+        .logo {
+            padding: 10px 0 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 20px;
+        }
+        
+        .logo h2 {
+            font-size: 20px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #a1a1aa;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: rgba(124, 58, 237, 0.2);
+            color: #fff;
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #4ade80;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+        
+        .stat-card .label {
+            font-size: 13px;
+            color: #71717a;
+            margin-bottom: 8px;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .stat-card .value.positive {
+            color: #4ade80;
+        }
+        
+        .stat-card .value.negative {
+            color: #f87171;
+        }
+        
+        .bot-controls {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .bot-controls h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .control-row:last-child {
+            border-bottom: none;
+        }
+        
+        .control-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .control-info p {
+            font-size: 12px;
+            color: #71717a;
+        }
+        
+        .toggle {
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 13px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle.active {
+            background: #7c3aed;
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle.active::after {
+            left: 26px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success {
+            background: #4ade80;
+            color: #000;
+        }
+        
+        .btn-danger {
+            background: #f87171;
+            color: #000;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: #fff;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .positions-table {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h3 {
+            font-size: 18px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            text-align: left;
+            padding: 16px 24px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #71717a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        td {
+            padding: 16px 24px;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .side-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .side-badge.yes {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+        
+        .side-badge.no {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+        
+        .pnl-positive {
+            color: #4ade80;
+        }
+        
+        .pnl-negative {
+            color: #f87171;
+        }
+        
+        .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <h2><i class="fas fa-robot"></i> PolyAI Trader</h2>
+        </div>
+        <nav>
+            <a href="/dashboard" class="nav-item active"><i class="fas fa-chart-line"></i> Dashboard</a>
+            <a href="/markets" class="nav-item"><i class="fas fa-chart-pie"></i> Markets</a>
+            <a href="/trades" class="nav-item"><i class="fas fa-history"></i> Trades</a>
+            <a href="/settings" class="nav-item"><i class="fas fa-cog"></i> Settings</a>
+        </nav>
+        <div class="logout-btn">
+            <button class="btn btn-danger" style="width: 100%;" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h1>Trading Dashboard</h1>
+            <div class="header-right">
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span>Live</span>
+                </div>
+                <div id="connectionStatus" style="font-size: 13px; color: #71717a;">
+                    <i class="fas fa-wifi"></i> Connected
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total Positions</div>
+                <div class="value" id="totalPositions">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Invested</div>
+                <div class="value" id="totalInvested">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total P&L</div>
+                <div class="value" id="totalPnl">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Trades Today</div>
+                <div class="value" id="tradesToday">0</div>
+            </div>
+        </div>
+        
+        <div class="bot-controls">
+            <h3><i class="fas fa-robot"></i> Bot Controls</h3>
+            <div class="control-row">
+                <div class="control-info">
+                    <h4>Bot Running</h4>
+                    <p>Start or stop the trading bot</p>
+                </div>
+                <button class="btn" id="botToggle" onclick="toggleBot()">
+                    <span class="toggle" id="botToggleIcon"></span>
+                </button>
+            </div>
+            <div class="control-row">
+                <div class="control-info">
+                    <h4>Auto Trading</h4>
+                    <p>Let AI automatically execute trades</p>
+                </div>
+                <button class="btn" id="autoTradeToggle" onclick="toggleAutoTrade()">
+                    <span class="toggle" id="autoTradeIcon"></span>
+                </button>
+            </div>
+            <div class="control-row">
+                <div class="control-info">
+                    <h4>Stake Amount</h4>
+                    <p>Amount per trade (USD)</p>
+                </div>
+                <input type="number" id="stakeAmount" value="10" min="1" max="1000" 
+                       style="width: 100px; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: #fff;"
+                       onchange="updateStakeAmount()">
+            </div>
+        </div>
+        
+        <div class="positions-table">
+            <div class="table-header">
+                <h3>Active Positions</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Market</th>
+                        <th>Side</th>
+                        <th>Amount</th>
+                        <th>Entry Price</th>
+                        <th>Current Price</th>
+                        <th>P&L</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="positionsTable">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #71717a; padding: 40px;">
+                            No active positions
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = '/login';
+        }
+
+        function checkAuth() {
+            fetch('/api/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(res => {
+                if (!res.ok) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            }).catch(() => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            });
+        }
+
+        checkAuth();
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+
+        async function loadDashboard() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            
+            try {
+                const [summaryRes, positionsRes, botRes] = await Promise.all([
+                    fetch('/api/dashboard/summary', { headers }),
+                    fetch('/api/positions', { headers }),
+                    fetch('/api/bot/status', { headers })
+                ]);
+                
+                const summary = await summaryRes.json();
+                const positions = await positionsRes.json();
+                const botStatus = await botRes.json();
+                
+                document.getElementById('totalPositions').textContent = summary.total_positions || 0;
+                document.getElementById('totalInvested').textContent = `$${(summary.total_invested || 0).toFixed(2)}`;
+                
+                const pnlEl = document.getElementById('totalPnl');
+                const pnl = summary.total_pnl || 0;
+                pnlEl.textContent = `$${pnl.toFixed(2)}`;
+                pnlEl.className = `value ${pnl >= 0 ? 'positive' : 'negative'}`;
+                
+                document.getElementById('tradesToday').textContent = summary.trades_today || 0;
+                document.getElementById('stakeAmount').value = summary.stake_amount || 10;
+                
+                if (summary.bot_running) {
+                    document.getElementById('botToggleIcon').classList.add('active');
+                } else {
+                    document.getElementById('botToggleIcon').classList.remove('active');
+                }
+                
+                if (summary.auto_trade) {
+                    document.getElementById('autoTradeIcon').classList.add('active');
+                } else {
+                    document.getElementById('autoTradeIcon').classList.remove('active');
+                }
+                
+                updatePositionsTable(positions);
+            } catch (err) {
+                console.error('Error loading dashboard:', err);
+            }
+        }
+
+        function updatePositionsTable(positions) {
+            const tbody = document.getElementById('positionsTable');
+            if (!positions || positions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #71717a; padding: 40px;">No active positions</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = positions.map(p => `
+                <tr>
+                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${p.market_question || p.market_id}
+                    </td>
+                    <td><span class="side-badge ${p.side}">${p.side.toUpperCase()}</span></td>
+                    <td>$${p.amount.toFixed(2)}</td>
+                    <td>$${p.entry_price.toFixed(2)}</td>
+                    <td>$${p.current_price.toFixed(2)}</td>
+                    <td class="${p.pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">$${p.pnl.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="sellPosition(${p.id})">
+                            Sell
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function toggleBot() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            const isRunning = document.getElementById('botToggleIcon').classList.contains('active');
+            
+            const endpoint = isRunning ? '/api/bot/stop' : '/api/bot/start';
+            await fetch(endpoint, { 
+                method: 'POST',
+                headers 
+            });
+            
+            document.getElementById('botToggleIcon').classList.toggle('active');
+        }
+
+        async function toggleAutoTrade() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            const isActive = document.getElementById('autoTradeIcon').classList.contains('active');
+            
+            await fetch('/api/bot/settings', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ auto_trade: !isActive })
+            });
+            
+            document.getElementById('autoTradeIcon').classList.toggle('active');
+        }
+
+        async function updateStakeAmount() {
+            const amount = document.getElementById('stakeAmount').value;
+            const headers = { 'Authorization': `Bearer ${token}` };
+            
+            await fetch('/api/bot/settings', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ stake_amount: parseFloat(amount) })
+            });
+        }
+
+        async function sellPosition(id) {
+            const headers = { 'Authorization': `Bearer ${token}` };
+            
+            if (confirm('Are you sure you want to close this position?')) {
+                await fetch(`/api/trade/sell`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ position_id: id })
+                });
+                
+                loadDashboard();
+            }
+        }
+
+        function connectWebSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${wsProtocol}//${window.location.host}/api/ws/dashboard`);
+            
+            ws.onopen = () => {
+                document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-wifi"></i> Connected';
+                document.getElementById('connectionStatus').style.color = '#4ade80';
+            };
+            
+            ws.onclose = () => {
+                document.getElementById('connectionStatus').innerHTML = '<i class="fas fa-wifi"></i> Disconnected';
+                document.getElementById('connectionStatus').style.color = '#f87171';
+                setTimeout(connectWebSocket, 5000);
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'update') {
+                    loadDashboard();
+                }
+            };
+        }
+
+        loadDashboard();
+        connectWebSocket();
+        
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
