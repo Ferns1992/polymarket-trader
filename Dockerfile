@@ -15,8 +15,6 @@ COPY . .
 
 ENV PYTHONPATH=/app
 
-RUN python -c "from app.database import engine, Base; from app.models.models import *; Base.metadata.create_all(bind=engine)"
-
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD uvicorn app.main:app --host 0.0.0.0 --port 8000
