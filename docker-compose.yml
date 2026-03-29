@@ -22,7 +22,7 @@ services:
     build: .
     container_name: polymarket_bot
     ports:
-      - "8080:8000"
+      - "8888:8000"
     environment:
       - DATABASE_URL=postgresql://polymarket:polymarket_pass_2024@postgres:5432/polymarket_trader
       - SECRET_KEY=polymarket_secret_key_change_in_production_2024
