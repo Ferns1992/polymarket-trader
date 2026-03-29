@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.database import engine, Base
 import app.api.routes as routes_module
+from app.init_db import init_db
 
 app = FastAPI(
     title="Polymarket AI Trader", description="AI-powered trading bot for Polymarket"
@@ -20,6 +21,11 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+
+try:
+    init_db()
+except:
+    pass
 
 app.include_router(router)
 
