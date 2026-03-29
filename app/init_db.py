@@ -13,7 +13,7 @@ def init_db():
         if not existing_user:
             user = User(
                 username="fabian",
-                password_hash=get_password_hash("Cloudflare@2@24ferns"),
+                password_hash=get_password_hash("polymarket123"),
             )
             db.add(user)
             print("Created user: fabian")
