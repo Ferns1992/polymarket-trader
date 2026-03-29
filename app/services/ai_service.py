@@ -111,7 +111,9 @@ Volume: {data.get("volume", "N/A")}
                 response = await client.post(
                     "https://openrouter.ai/api/v1/chat/completions",
                     headers={
-                        "Authorization": f"Bearer {self.settings.openrouter_api_key}"
+                        "Authorization": f"Bearer {self.settings.openrouter_api_key}",
+                        "HTTP-Referer": "https://polymarket-trader",
+                        "X-Title": "Polymarket Trader",
                     },
                     json={
                         "model": self.settings.model or "openai/gpt-3.5-turbo",
@@ -119,9 +121,12 @@ Volume: {data.get("volume", "N/A")}
                     },
                 )
                 if response.status_code == 200:
-                    return self._parse_response(
-                        response.json()["choices"][0]["message"]["content"]
-                    )
+                    data = response.json()
+                    if "choices" in data and len(data["choices"]) > 0:
+                        return self._parse_response(
+                            data["choices"][0]["message"]["content"]
+                        )
+                return f"ERROR: {response.status_code} - {response.text[:100]}"
         except Exception as e:
             return f"ERROR: {str(e)}"
         return "HOLD"

@@ -271,10 +271,10 @@
                 body.ollama_url = url;
             } else if (currentProvider === 'lmstudio') {
                 body.lmstudio_url = url;
-            } else if (currentProvider === 'openrouter' && apiKey) {
-                body.openrouter_api_key = apiKey;
-            } else if (currentProvider === 'gemini' && apiKey) {
-                body.gemini_api_key = apiKey;
+            } else if (currentProvider === 'openrouter') {
+                body.openrouter_api_key = apiKey || '';
+            } else if (currentProvider === 'gemini') {
+                body.gemini_api_key = apiKey || '';
             }
             
             try {
